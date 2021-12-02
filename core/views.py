@@ -191,10 +191,16 @@ def queries(request):
                     tmp.append(sum(tmp))
                     if request.GET.get('means') == 'qq':
                         for i in range(len(tmp) - 1):
-                            tmp[i] /= all[i]
+                            if all[i]:
+                                tmp[i] /= all[i]
+                            else:
+                                tmp[i] = 0
                     elif request.GET.get('means') == 'all':
                         for i in range(len(tmp) - 1):
-                            tmp[i] /= all[-1]
+                            if all[i]:
+                                tmp[i] /= all[-1]
+                            else:
+                                tmp[i] = 0
                     table.append(tmp)
 
                 table.append(all)
