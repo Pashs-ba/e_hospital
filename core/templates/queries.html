@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load core_filters %}
+
+{% block main %}
+    <div class="card my-5">
+        <div class="card-body px-5">
+            <form method="GET" id="form">
+                <div class="mb-3">
+                    <label for="mutations" class="form-label">Введите все мутации через пробел или напишите all, если
+                        хотите оставить все</label>
+                    <input type="text" class="form-control" id="mutations" name="mutations" value="{{ old_mutations }}">
+                </div>
+                Дополнительные параметры
+                <div class="card my-2 mb-3">
+                    <div class="card-body px-2">
+                        <div class="row">
+                            <div class="mb-3 col-6">
+                                <label for="sex" class="form-label">Пол</label>
+                                <select class="form-select" name="sex" id="sex">
+                                    <option {% if s_sex == '0 1' %}selected{% endif %} value="0 1">Неважно</option>
+                                    <option {% if s_sex == '0' %}selected{% endif %} value="0">М</option>
+                                    <option {% if s_sex == '1' %}selected{% endif %} value="1">Ж</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Возраст</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">От</span>
+                                    <input type="number" name="year_from" class="form-control"
+                                           {% if s_year_from %}value="{{ s_year_from }}"
+                                           {% else %}value="{{ min_year }}"{% endif %}>
+                                    <span class="input-group-text">До</span>
+                                    <input type="number" name="year_to" class="form-control"
+                                           {% if s_year_to %}value="{{ s_year_to }}"
+                                           {% else %}value="{{ max_year }}"{% endif %}>
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label for="region" class="form-label">Регион</label>
+                                <select class="form-select" name="region" id="region" multiple>
+                                    {% for i in regions %}
+                                        <option {% if i in s_reg %} selected{% endif %}>{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Дата пробы</label>
+                                <div class="input-group mb-3">
+                                    <select class="form-select" name="probe_date" id="region" multiple>
+                                        {% for i in years %}
+                                            <option {% if i in s_probe_date %}selected{% endif %}>{{ i }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Вирусная наргрузка</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">От</span>
+                                    <input type="number" name="load_from" class="form-control"
+                                           {% if s_load_from %}value="{{ s_load_from }}"
+                                           {% else %}value="{{ min_load }}"{% endif %}>
+                                    <span class="input-group-text">До</span>
+                                    <input type="number" name="load_to" class="form-control"
+                                           {% if s_load_to %}value="{{ s_load_to }}"
+                                           {% else %}value="{{ max_load }}"{% endif %}>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Приверженность</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">От</span>
+                                    <input type="number" name="loyalty_from" class="form-control"
+                                           {% if s_loyalty_from %}value="{{ s_loyalty_from }}"
+                                           {% else %}value="{{ min_loyalty }}"{% endif %}>
+                                    <span class="input-group-text">До</span>
+                                    <input type="number" name="loyalty_to" class="form-control"
+                                           {% if s_loyalty_to %}value="{{ s_loyalty_to }}"
+                                           {% else %}value="{{ max_loyalty }}"{% endif %}>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="separate" class="form-label">Разделять по</label>
+                    <select class="form-select" name="separate" id="separate">
+                        <option {% if s_separator == 'sex' %}selected{% endif %} value="sex">Полу</option>
+                        <option {% if s_separator == 'age' %}selected{% endif %} value="age">Возрасту</option>
+                        <option {% if s_separator == 'region' %}selected{% endif %} value="region">Региону</option>
+                        <option {% if s_separator == 'probe_date' %}selected{% endif %} value="probe_date">Дате пробы
+                        </option>
+                        {#                        <option value="load">Вирусной нагрузке</option>#}
+                        {#                        <option value="loyalty">Приверженности</option>#}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="separate" class="form-label">Значения</label>
+                    <select class="form-select" name="means" id="separate">
+                        <option {% if s_mean == 'abs' %}selected{% endif %} value="abs">Абсолютные</option>
+                        <option {% if s_mean == 'qq' %}selected{% endif %} value="qq">Относительные</option>
+                        <option {% if s_mean == 'all' %}selected{% endif %} value="all">От доли всех мутаций</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Отправить</button>
+                <div id="passwordHelpBlock" class="form-text">
+                    Если не выбирать поля, выберутся все возможные значения
+                </div>
+            </form>
+        </div>
+    </div>
+    {% if mutations %}
+        <table class="table table-striped table-bordered">
+            <thead>
+            <tr class="table-dark">
+                <th scope="col" class="align-middle">Имя</th>
+                {% for i in separator %}
+                    <th scope="col" class="align-middle">
+                        {% if s_separator == 'sex' %}{{ i|dict_get:sex_ch }}{% else %}{{ i }}{% endif %}</th>
+                {% endfor %}
+                <th scope="col" class="col-5 align-middle">Всего</th>
+
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in mutations %}
+                <tr>
+                    <th>{{ i.0.name }}</th>
+                    {% for j in i.1 %}
+                        <th>{{ j }}</th>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+{#        {{ for_graph }}#}
+        <canvas id="myChart" height="100"></canvas>
+        <script>
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data:  {
+                    labels: [{% for i in mutations %}"{{ i.0.name }}", {% endfor %}],
+                    datasets: [{% for i in for_graph %}{
+                        label: '{{ i.2 }}',
+                        data: {{i.0}},
+                        backgroundColor: [
+                            '{{ i.1 }}',
+                        ],
+                        borderColor: [
+                            '{{i.1}}',
+                        ],
+                        borderWidth: 1
+                    },{% endfor %}],
+                },
+
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+            })
+            ;
+        </script>
+    {% endif %}
+{% endblock %}

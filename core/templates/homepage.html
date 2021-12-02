@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load core_filters %}
+{% block main %}
+    <div class="d-flex justify-content-center">
+        <a href="{% url 'new_patient' %}" class="btn btn-primary btn-lg mx-3" role="button" aria-disabled="true">Создать
+            новую запись</a>
+        <a href="{% url 'queries' %}" class="btn btn-primary btn-lg mx-3" role="button" aria-disabled="true">Новый запрос</a>
+    </div>
+    <div class="container-fluid mt-5">
+        <h3 class="display-3 text-center">Сводная таблица</h3>
+        <div class="row align-left">
+            <div class="col-2">
+                <form id="year_form">
+                    <div class="input-group mb-3">
+                        <select class="form-select" name="year">
+                            <option {% if selected == 'all' %}selected{% endif %} value="all">Все года</option>
+                            {% for i in years %}
+                                <option {% if selected == i %} selected{% endif %}>{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <button class="btn btn-primary" type="submit" id="button-addon2" for="year_form"><i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <table class="table table-striped table-bordered">
+            <thead>
+            <tr class="table-dark">
+                <th scope="col" class="align-middle">Имя</th>
+                <th scope="col" class="col-1 align-middle">Пол</th>
+                <th scope="col" class="col-1 align-middle">Возраст</th>
+                <th scope="col" class="col-1 align-middle">Регион</th>
+                <th scope="col" class="col-1 align-middle">Дата Пробы</th>
+                <th scope="col" class="col-1 align-middle">Вирусная нагрузка</th>
+                <th scope="col" class="col-1 align-middle">Приверженность</th>
+                <th scope="col" class="col-5 align-middle">Мутации</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in data %}
+                <tr>
+                    <th scope="col"><a href="{% url 'patient_page' i.pk %}" style="text-decoration: none; color: black">{{ i.name }}</a></th>
+                    <th scope="col">{{ i.sex|dict_get:sex_ch }}</th>
+                    <th scope="col">{{ year|subtract:i.birthday.year }}</th>
+                    <th scope="col">{{ i.region }}</th>
+                    <th scope="col">{{ i.date_of_probe }}</th>
+                    <th scope="col">{{ i.virus_load }}</th>
+
+                    <th scope="col">{% if i.loyalty != 100 %}{{ i.loyalty }}{% endif %}</th>
+                    <th scope="col">{% for j in i.mutations.all %}{{ j.name }} {% endfor %}</th>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
